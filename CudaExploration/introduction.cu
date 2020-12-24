@@ -5,6 +5,7 @@ Any clarifications needed pls refer to the guide
 
 #include <iostream>
 #include <math.h>
+#include <time.h>
 #include "cuda_runtime.h"               //headers for the cuda methods
 #include "device_launch_parameters.h"
 
@@ -15,14 +16,22 @@ __global__ void add(int n, float* x, float* y)
     GPU code is called device code and CPU code is called host code
 */
 {
-    for (int i = 0; i < n; i++)
-        y[i] = x[i] + y[i];
+    //int index = threadIdx.x; //threadIdx returns the index of the current thread
+    //int stride = blockDim.x; //blockDim returns the number of threads in the current block
+
+    int index = blockIdx.x * blockDim.x + threadIdx.x;  //block index * threads per block * thread index
+    int increment = blockDim.x * gridDim.x;             //threads per block * total threads active
+    for (int i = index; i < n; i += increment) {
+		y[i] = x[i] + y[i];
+		//printf("%d\n", i);
+    }
 }
 
 int main(void)
 {
+    printf("Process started");
+    
     int N = 1 << 20; // 1M elements, << operation is bitwise shift
-
     //float* x = new float[N];
     //float* y = new float[N];
     float* x, * y;
@@ -35,11 +44,18 @@ int main(void)
         y[i] = 2.0f;
     }
 
+    int blockSize = 256;
+    int numBlocks = (N + blockSize - 1) / blockSize; // calculation of the amount of blocks of 256 needed to complete the task
+    clock_t tstart = clock();
     // Run kernel on 1M elements on the GPU
-    add <<<1, 1 >>> (N, x, y);
+    add <<<numBlocks, 256 >>> (N, x, y);
+    /* The key code here is the <<< blocks , threads >>> that tells the compiler this code is meant to run on the GPU
+    Threads have to be in a multiple of 32, maximum of 1024*/
 
     // Wait for GPU to finish before accessing on host
     cudaDeviceSynchronize();
+
+    printf("Time taken: %.9fs\n", (double)(clock() - tstart) / CLOCKS_PER_SEC);
 
     // Check for errors (all values should be 3.0f)
     float maxError = 0.0f;
