@@ -339,3 +339,6 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /CudaExploration/kernel.cu
+singleNeuron/single.exe
+singleNeuron/single.exp
+singleNeuron/single.lib

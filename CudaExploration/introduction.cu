@@ -27,7 +27,7 @@ __global__ void add(int n, float* x, float* y)
     }
 }
 
-int done(void) //change to main to use
+int main(void)
 {
     printf("Process started");
     
