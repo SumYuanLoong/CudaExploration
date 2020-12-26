@@ -11,7 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="Functions.cu" />
     <CudaCompile Include="singleNeuron.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Functions.cuh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B3A1E798-4795-47DC-9EE1-7CA5B5B1F73F}</ProjectGuid>
