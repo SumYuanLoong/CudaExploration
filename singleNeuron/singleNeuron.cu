@@ -29,7 +29,6 @@ double testsig[tsRow]; //store testing set sigmoid y cap of each patient
 //data is r1c1 r1c2 r1c9 r2c1 r2c2
 //1 row is 1 patient
 float* pTrainSetData;
-
 //testing data set
 //data is r1c1 r1c2 r1c9 r2c1 r2c2
 //1 row is 1 patient
@@ -49,6 +48,8 @@ double* pttrmmse = &ttrmmse;
 double* pttsmmse = &ttsmmse;
 
 void readFile(float* traindata, float* testdata, float* trainDiag, float* testDiag);
+double random();
+void matrix();
 
 int main(void) {
     clock_t tstart = clock(); //start clock

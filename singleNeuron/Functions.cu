@@ -1,36 +1,22 @@
-﻿//__global__ void linearRegress(short flag) {
-//    //TO check if run through of entire dataset is needed
-//    int maxRows;
-//    float* pdataset;
-//    double* pzArr;
-//    //assignment of pointers what is going though the process
-//    if (flag == 1) {
-//        maxRows = sizeof(TrainSetData) / sizeof(*pTrainSetData);
-//        pdataset = pTrainSetData;
-//        pzArr = ptrainz;
-//    }
-//    else {
-//        maxRows = sizeof(TestSetData) / sizeof(*pTestSetData);
-//        pdataset = pTestSetData;
-//        pzArr = ptestz;
-//    }
-//
-//    int a, b, c = 0; // x is loop counter, y for position in row, c for row
-//    double z = 0;
-//    for (a = 0, b = 0; a < maxRows; a++, pdataset++) {
-//        if (b == (col - 2)) {
-//            z += (weight[b] * *pdataset) + bias;
-//            *pzArr = z;
-//            pzArr++;   // increment to next value in z arrary
-//            b = 0;
-//            z = 0;        //reset column and z row values
-//        }
-//        else
-//        {
-//            z += (weight[b++] * *pdataset);     //calculation
-//        }
-//    }
-//}
+﻿__global__ void linearRegress(int maxrows, float* pdataset, double* pzArr, int col) {
+    //maxRows = sizeof(TrainSetData) / sizeof(*pTrainSetData);
+
+    int a, b, c = 0; // a is loop counter, b for position in row, c for row
+    double z = 0;
+    for (a = 0, b = 0; a < maxrows; a++, pdataset++) {
+        if (b == (col - 2)) {
+            z += (weight[b] * *pdataset) + bias;
+            *pzArr = z;
+            pzArr++;   // increment to next value in z arrary
+            b = 0;
+            z = 0;        //reset column and z row values
+        }
+        else
+        {
+            z += (weight[b++] * *pdataset);     //calculation
+        }
+    }
+}
 //
 ////sigmoid function taking in the z arr
 //void sigmoid(double zArr[], double sigArr[], int arrSz) {
@@ -55,17 +41,17 @@
 //    }
 //    *testMmse = mmsesum / tsRow;
 //}
-//
-////calculation of mae for training set mae is only dependent on training set
-//double maeFunc() {
-//    int i;
-//    double maesum = 0;
-//    for (i = 0; i < trRow; i++) {
-//        maesum += fabs(trainsig[i] - TrainSetDiag[i]);
-//    }
-//    return maesum / 90;
-//}
-//
+
+//calculation of mae for training set mae is only dependent on training set
+double maeFunc(int trRow, float *sigma, float *diag) {
+    int i;
+    double maesum = 0;
+    for (i = 0; i < trRow; i++) {
+        maesum += fabs(*sigma - *diag);
+    }
+    return maesum / 90;
+}
+
 ////backPropagate
 //void backPropagate() {
 //    int x, y;
