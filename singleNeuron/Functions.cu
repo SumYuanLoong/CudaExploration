@@ -1,21 +1,29 @@
 ﻿__global__ void linearRegress(int maxrows, float* pdataset, double* pzArr, int col) {
     //maxRows = sizeof(TrainSetData) / sizeof(*pTrainSetData);
 
-    int a, b, c = 0; // a is loop counter, b for position in row, c for row
-    double z = 0;
-    for (a = 0, b = 0; a < maxrows; a++, pdataset++) {
-        if (b == (col - 2)) {
-            z += (weight[b] * *pdataset) + bias;
-            *pzArr = z;
-            pzArr++;   // increment to next value in z arrary
-            b = 0;
-            z = 0;        //reset column and z row values
-        }
-        else
-        {
-            z += (weight[b++] * *pdataset);     //calculation
-        }
-    }
+    int index = blockIdx.x * blockDim.x + threadIdx.x;  //block index * threads per block * thread index
+    //int increment = blockDim.x * gridDim.x;             //threads per block * total threads active
+
+    int column = index % 9;     //determine what weight to apply 
+    int row = index / 9;        //to determine where to save z to
+
+
+
+    //int a, b, c = 0; // a is loop counter, b for position in row, c for row
+    //double z = 0;
+    //for (a = 0, b = 0; a < maxrows; a++, pdataset++) {
+    //    if (b == (col - 2)) {
+    //        z += (weight[b] * *pdataset) + bias;
+    //        *pzArr = z;
+    //        pzArr++;   // increment to next value in z arrary
+    //        b = 0;
+    //        z = 0;        //reset column and z row values
+    //    }
+    //    else
+    //    {
+    //        z += (weight[b++] * *pdataset);     //calculation
+    //    }
+    //}
 }
 //
 ////sigmoid function taking in the z arr

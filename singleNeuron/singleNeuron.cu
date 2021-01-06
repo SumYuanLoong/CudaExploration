@@ -13,6 +13,9 @@
 #define tsRow 10 //number of rows in the test set
 #define col 10 //columns of data including desired value "result"
 
+int trainingDataCount = trRow * (col - 1);
+int testDataCount = tsRow * (col - 1);
+
 //datasets
 float TrainSetData[trRow][col - 1]; 
 float TestSetData[tsRow][col - 1]; 
@@ -35,8 +38,8 @@ float* pTrainSetData;
 float* pTestSetData;
 float* pTrainSetDiag;
 float* pTestSetDiag;
-double* ptrainz = &trainz[0];
-double* ptestz = &testz[0];
+double* ptrainz;
+double* ptestz;
 
 //original data/weights/bias for printing at end
 double weight[9];
@@ -54,21 +57,27 @@ void matrix();
 int main(void) {
     clock_t tstart = clock(); //start clock
     srand(time(NULL));
-    using namespace std;
     
     //cuda memory allocation
     cudaMallocManaged(&pTrainSetData, trRow * (col - 1) * sizeof(float));
     cudaMallocManaged(&pTestSetData, tsRow * (col - 1) * sizeof(float));
     cudaMallocManaged(&pTrainSetDiag, trRow  * sizeof(float));
     cudaMallocManaged(&pTestSetDiag, tsRow  * sizeof(float));
+    cudaMallocManaged(&ptrainz, trRow * sizeof(double));
+    cudaMallocManaged(&ptestz, trRow * sizeof(double));
 
     readFile(pTrainSetData, pTestSetData, pTrainSetDiag, pTestSetDiag);
 
+    
+    int numBlocks = (trainingDataCount + 256 - 1) / 256;
+    memset(ptrainz, 0, trRow * sizeof(double));  // set the z arr to 0 so the threads can assign values
+    linearRegress <<<numBlocks, 256 >>> (trRow, pTrainSetData, ptrainz, col);
     
 }
 
 void readFile(float *traindata, float *testdata, float *trainDiag, float *testDiag) {
     int x, y;
+    int a=0, b=0, c=0, d=0;
     FILE* fertfile_ptr = fopen("fertility_Diagnosis_Data_Group1_4.txt", "r");
 
     // error handling
@@ -83,26 +92,33 @@ void readFile(float *traindata, float *testdata, float *trainDiag, float *testDi
             if (y == (col - 1)) { //result of diagnosis
                 if (x < trRow) {
                     fscanf(fertfile_ptr, "%f, ", trainDiag);
-                    trainDiag++;
+                    trainDiag++,a++;
                 }
                 else {
                     fscanf(fertfile_ptr, "%f, ", testDiag);
-                    testDiag++;
+                    testDiag++,b++;
                 }
             }
             else {  //data to determine diagnosis
                 if (x < trRow) {
                     fscanf(fertfile_ptr, "%f, ", traindata);
-                    traindata++;
+                    traindata++,c++;
                 }
                 else {
                     fscanf(fertfile_ptr, "%f, ", testdata);
-                    testdata++;
+                    testdata++,d++;
                 }
             }
         }
     }
     fclose(fertfile_ptr);
+    printf("%d training data read.\n", c);
+    printf("%d training diag read.\n", a);
+
+    printf("%d testing data read.\n", d);
+    printf("%d testing diag read.\n", b);
+
+
 }
 
 //generate a number between -1 and 1
@@ -131,7 +147,6 @@ double random()
 // to display the confusion matrix
 void matrix() {
     int tp = 0, fp = 0, tn = 0, fn = 0, i, y;
-    short res[totalRows];
     for (i = 0; i < trRow; i++) {
         y = round(trainsig[i]);
         if (y == 1)
